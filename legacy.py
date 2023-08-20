@@ -50,9 +50,13 @@ def main(
 
     typer.secho(f"Parsing data from '{input_file}'", fg=typer.colors.GREEN)
     raw_text = input_file.read_text()
+
     # parse the historical data
     data = feedparser.parse(raw_text)
-    posts = {}
+
+    posts = {}          # Dictionary to store blog posts.
+    comments = []       # List to store comments temporarily.
+
     for entry in data.entries:
         try:
             # Filter out config data and other junk
@@ -63,17 +67,26 @@ def main(
             if "#settings" in entry.category:
                 continue
 
-            # add comments to entries
+            # If entry is a comment, just add it to the comments list.
             if "#comment" in entry.category:
-                posts[entry["thr_in-reply-to"]["href"]].comments.append(entry)
-                continue
+                comments.append(entry)
+            else:
+                # If entry is a post, add a comments list to it and store in posts dictionary.
+                entry["comments"] = []
+                posts[entry.link] = entry
 
-            # Add entries to the posts and prep for comments
-            entry["comments"] = []
-            posts[entry.link] = entry
         except KeyError as e:
             print("Error: {}".format(e))
             continue
+
+    # Attach comments to their corresponding posts.
+    for comment in comments:
+        post_link = comment["thr_in-reply-to"]["href"]
+        if post_link in posts:
+            posts[post_link]["comments"].append(comment)
+        else:
+            print(f"Warning: Comment '{comment.title}' has no corresponding post!")
+
 
     # Write the markdown files
     typer.secho(
