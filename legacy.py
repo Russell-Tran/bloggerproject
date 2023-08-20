@@ -2,7 +2,7 @@
 Based on:
 https://daniel.feldroy.com/posts/2022-02-blogger-to-markdown-script
 
-I debugged an issue where Anonymous comments didn't get saved.
+I debugged an issue where some comments weren't being saved.
 """
 
 
@@ -122,7 +122,7 @@ def main(
                     f.write(
                         f"*This was originally posted on blogger [here]({key})*.\n\n"
                     )
-                # Write the HTML, TODO: consider converting to markdown
+                # Write the HTML
                 f.write(value["summary"])
                 # If any comments, add them
                 if value["comments"]:
